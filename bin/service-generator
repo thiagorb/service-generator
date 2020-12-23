@@ -1,0 +1,59 @@
+#!/usr/bin/env php
+<?php
+
+$vendorPossibleLocations = function () use ($argv) {
+    // service-generator is inside the vendor folder, without symlink
+    yield __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..';
+
+    // service-generator is installed with symlink
+    yield dirname($argv[0]) . DIRECTORY_SEPARATOR . '..';
+
+    // running directly from service-generator
+    yield dirname($argv[0]) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'vendor';
+};
+
+foreach ($vendorPossibleLocations() as $vendorPossibleLocation) {
+    $autoloadPath = $vendorPossibleLocation . DIRECTORY_SEPARATOR . 'autoload.php';
+    if (file_exists($autoloadPath)) {
+        require($autoloadPath);
+        break;
+    }
+}
+
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\SingleCommandApplication;
+
+(new SingleCommandApplication())
+    ->setName('Service Generator')
+    ->addOption('configuration', null, InputOption::VALUE_REQUIRED, 'Configuration class')
+    ->setCode(function (InputInterface $input, OutputInterface $output) {
+        $configurationClass = $input->getOption('configuration');
+
+        if (!is_string($configurationClass)) {
+            $output->writeln('<error>Please provide the configuration provider class</error>');
+            return Command::FAILURE;
+        }
+
+        if (!class_exists($configurationClass)) {
+            $output->writeln('<error>The provided configuration provider class seems to be invalid</error>');
+            return Command::FAILURE;
+        }
+
+        $configuration = new $configurationClass;
+
+        if (!method_exists($configuration, 'getServiceConfigurations')) {
+            $output->writeln('<error>The configuration provider must have a method named getServiceConfigurations</error>');
+            return Command::FAILURE;
+        }
+
+        $generator = new \Thiagorb\ServiceGenerator\Generator();
+        $generator->generate($configuration->getServiceConfigurations());
+
+        $output->writeln('<info>Generation complete</info>');
+
+        return Command::SUCCESS;
+    })
+    ->run();

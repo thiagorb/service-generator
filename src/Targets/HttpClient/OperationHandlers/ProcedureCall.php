@@ -9,7 +9,7 @@ class ProcedureCall extends AbstractResourceMessage implements OperationHandler
     public function buildMetaData(): ?array
     {
         return [
-            'relative_path' => $this->decamelize($this->methodContext->getMethod()->getName()),
+            'relative_path' => $this->methodContext->getNamingConvention()->transformMethodName($this->methodContext->getMethod()),
             'http_method' => 'post',
             'parameters' => $this->buildMethodParametersMetaData(),
             /** @todo: implement exceptions inference */
@@ -21,10 +21,5 @@ class ProcedureCall extends AbstractResourceMessage implements OperationHandler
     protected function getHttpMethod(): string
     {
         return 'post';
-    }
-
-    protected function decamelize(string $string): string
-    {
-        return strtolower(preg_replace(['/([a-z\d])([A-Z])/', '/([^_])([A-Z][a-z])/'], '$1_$2', $string) ?: '');
     }
 }

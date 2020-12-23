@@ -2,6 +2,8 @@
 
 namespace Thiagorb\ServiceGenerator\Configuration;
 
+use Thiagorb\ServiceGenerator\Targets\GeneratorInterface;
+
 class Service
 {
     /**
@@ -13,8 +15,7 @@ class Service
      */
     protected $contractsNamespace;
     /**
-     * @psalm-var class-string
-     * @var string
+     * @var GeneratorInterface
      */
     protected $target;
     /**
@@ -25,15 +26,17 @@ class Service
      * @var string
      */
     protected $targetNamespace;
-
     /**
-     * @psalm-param class-string $target
+     * @var NamingConvention
      */
+    protected $namingConvention;
+
     public function __construct(
         string $entryPointContract,
-        string $target,
+        GeneratorInterface $target,
         string $targetDirectory,
-        string $targetNamespace
+        string $targetNamespace,
+        ?NamingConvention $namingConvention = null
     ) {
         $this->entryPointContract = $entryPointContract;
         $contractsNamespace = explode('\\', $entryPointContract);
@@ -42,6 +45,7 @@ class Service
         $this->target = $target;
         $this->targetDirectory = $targetDirectory;
         $this->targetNamespace = $targetNamespace;
+        $this->namingConvention = $namingConvention ?: new SnakeCaseConvention;
     }
 
     /**
@@ -60,11 +64,7 @@ class Service
         return $this->contractsNamespace;
     }
 
-    /**
-     * @psalm-return class-string
-     * @return string
-     */
-    public function getTarget(): string
+    public function getTarget(): GeneratorInterface
     {
         return $this->target;
     }
@@ -83,5 +83,10 @@ class Service
     public function getTargetNamespace(): string
     {
         return $this->targetNamespace;
+    }
+
+    public function getNamingConvention(): NamingConvention
+    {
+        return $this->namingConvention;
     }
 }

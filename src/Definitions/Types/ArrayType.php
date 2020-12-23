@@ -18,7 +18,7 @@ class ArrayType implements BaseType
     {
         return $this->itemType;
     }
-
+    
     public function accept(Visitor $visitor)
     {
         $visitor->visitArray($this);

@@ -8,6 +8,7 @@ use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\Type;
 use phpDocumentor\Reflection\Types\Array_;
 use phpDocumentor\Reflection\Types\Boolean;
+use phpDocumentor\Reflection\Types\Compound;
 use phpDocumentor\Reflection\Types\Context;
 use phpDocumentor\Reflection\Types\ContextFactory;
 use phpDocumentor\Reflection\Types\Float_;
@@ -24,9 +25,10 @@ use Thiagorb\ServiceGenerator\Definitions\Types\VoidType;
 use Thiagorb\ServiceGenerator\Definitions\Method;
 use Thiagorb\ServiceGenerator\Definitions\Parameter;
 use phpDocumentor\Reflection\Types\Mixed_;
+use phpDocumentor\Reflection\Types\Null_;
 use phpDocumentor\Reflection\Types\Self_;
 
-class MethodTypeResolver
+class DocBlockTypeResolver
 {
     /**
      * @var TypeResolver
@@ -71,6 +73,12 @@ class MethodTypeResolver
             $methods[$method->getName()] = $this->buildMethodDefinition($method);
         }
         return $methods;
+    }
+
+    public function resolveDocBlockTypeName(string $typeName): ?BaseType
+    {
+        $tag = $this->docBlockFactory->create("@var {$typeName}")->getTags()[0];
+        return $this->resolveDocBlockType($tag->getType());
     }
 
     protected function buildMethodDefinition(\ReflectionMethod $method): Method
@@ -170,7 +178,26 @@ class MethodTypeResolver
             },
             Boolean::class => $primitiveHandler,
             // Callable_::class
-            // Compound::class
+            Compound::class => function (Compound $type): BaseType {
+                $nullType = null;
+                $innerType = null;
+                $nonNulls = 0;
+
+                foreach ($type as $subtype) {
+                    if ($subtype instanceof Null_) {
+                        $nullType = $type;
+                    } else if (is_null($innerType)) {
+                        $innerType = $this->resolveDocBlockType($subtype);
+                        $nonNulls++;
+                    }
+                }
+
+                if (is_null($nullType) || $nonNulls > 1) {
+                    throw new \Error('The only compound type supported is `T|null`');
+                }
+
+                return new NullableType($innerType);
+            },
             Float_::class => $primitiveHandler,
             Integer::class => $primitiveHandler,
             // Iterable_::class

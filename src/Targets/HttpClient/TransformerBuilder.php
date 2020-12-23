@@ -111,6 +111,7 @@ class TransformerBuilder
                 $type['defaultValue'] = $parameter->getDefaultValue();
             }
             $type['nullable'] = $parameter->getType() instanceof NullableType;
+            $type['encodedName'] = $this->configuration->getNamingConvention()->transformParameterName($parameter);
             $properties[$parameter->getName()] = $type;
         }
 

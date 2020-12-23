@@ -88,7 +88,8 @@ abstract class AbstractResourceMessage
 
     protected function buildParameterMetaData(Parameter $parameter): array
     {
-        return $this->factory->getTransformerResolver()->transform($parameter->getType());
+        $typeTransformer = $this->factory->getTransformerResolver()->transform($parameter->getType());
+        return $typeTransformer + ['encodedName' => $this->methodContext->getNamingConvention()->transformParameterName($parameter)];
     }
 
     protected abstract function getHttpMethod(): string;

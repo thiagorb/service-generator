@@ -3,18 +3,18 @@
 namespace Tests;
 
 use Thiagorb\ServiceGenerator\TypeResolver;
-use Thiagorb\ServiceGenerator\MethodTypeResolver;
+use Thiagorb\ServiceGenerator\DocBlockTypeResolver;
 use Thiagorb\ServiceGenerator\Definitions\Types\PrimitiveType;
 use Thiagorb\ServiceGenerator\Definitions\Types\NullableType;
 use Thiagorb\ServiceGenerator\Definitions\Types\VoidType;
 
-class MethodTypeResolverTest extends TestCase
+class DocBlockTypeResolverTest extends TestCase
 {
     public function testReturnPrimitive()
     {
         $obj = new class { public function returnInt(): int { return 0; } };
 
-        $typeResolver = new MethodTypeResolver(new TypeResolver(), new \ReflectionClass($obj));
+        $typeResolver = new DocBlockTypeResolver(new TypeResolver(), new \ReflectionClass($obj));
         list('returnInt' => $actualReturnInt) = $typeResolver->buildDefinitions();
         $this->assertInstanceOf(PrimitiveType::class, $actualReturnInt->getReturnType());
         $this->assertEquals('int', $actualReturnInt->getReturnType()->getName());
@@ -31,7 +31,7 @@ class MethodTypeResolverTest extends TestCase
             }
         };
 
-        $typeResolver = new MethodTypeResolver(new TypeResolver(), new \ReflectionClass($obj));
+        $typeResolver = new DocBlockTypeResolver(new TypeResolver(), new \ReflectionClass($obj));
         list('returnNullable' => $actualReturnNullable) = $typeResolver->buildDefinitions();
         $this->assertInstanceOf(NullableType::class, $actualReturnNullable->getReturnType());
         $this->assertEquals('int', $actualReturnNullable->getReturnType()->getInnerType()->getName());
@@ -42,7 +42,7 @@ class MethodTypeResolverTest extends TestCase
     {
         $obj = new class { public function parametersInt(int $a, int $b = 0, int $c = null): void {} };
 
-        $typeResolver = new MethodTypeResolver(new TypeResolver(), new \ReflectionClass($obj));
+        $typeResolver = new DocBlockTypeResolver(new TypeResolver(), new \ReflectionClass($obj));
         list('parametersInt' => $actualParametersInt) = $typeResolver->buildDefinitions();
         $this->assertInstanceOf(VoidType::class, $actualParametersInt->getReturnType());
         $this->assertEquals(['type' => 'void', 'nullable' => false], $actualParametersInt->getTypeHintReturnType());
@@ -74,7 +74,7 @@ class MethodTypeResolverTest extends TestCase
     {
         $obj = new class { public function parametersNullable(?int $a, ?int $b = 0, ?int $c = null): void {} };
 
-        $typeResolver = new MethodTypeResolver(new TypeResolver(), new \ReflectionClass($obj));
+        $typeResolver = new DocBlockTypeResolver(new TypeResolver(), new \ReflectionClass($obj));
 
         list('parametersNullable' => $actualParametersNullable) = $typeResolver->buildDefinitions();
         $this->assertInstanceOf(VoidType::class, $actualParametersNullable->getReturnType());

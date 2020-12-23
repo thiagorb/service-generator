@@ -21,7 +21,7 @@ namespace Fake\Contracts
     }
 }
 
-namespace Tests\Client
+namespace Tests\Targets\HttpClient
 {
     use Fake\Contracts\Contract;
     use Thiagorb\ServiceGenerator\Configuration\Service as ServiceConfiguration;
@@ -30,7 +30,7 @@ namespace Tests\Client
     use Thiagorb\ServiceGenerator\TypeResolver;
     use Tests\TestCase;
 
-    class HttpClientTest extends TestCase
+    class GeneratorTest extends TestCase
     {
         public function testGenerate()
         {
@@ -41,7 +41,7 @@ namespace Tests\Client
                 $generator->generate(
                     new ServiceConfiguration(
                         Contract::class,
-                        Generator::class,
+                        new Generator(),
                         '/fake_path',
                         'Fake\\Client'
                     ),

@@ -53,6 +53,12 @@ class TypeResolver
         throw new \Error('Unable to resolve type ' . $type);
     }
 
+    public function resolveDocBlockTypeName(string $type): ?BaseType
+    {
+        $docBlockResolver = new DocBlockTypeResolver($this, new \ReflectionClass(\stdClass::class));
+        return $docBlockResolver->resolveDocBlockTypeName($type);
+    }
+
     /**
      * @template T as object
      * @template B of BaseType
@@ -76,7 +82,7 @@ class TypeResolver
      */
     protected function resolveMethods(string $type): array
     {
-        return (new MethodTypeResolver($this, new \ReflectionClass($type)))->buildDefinitions();
+        return (new DocBlockTypeResolver($this, new \ReflectionClass($type)))->buildDefinitions();
     }
 
     /**
